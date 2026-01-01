@@ -5,7 +5,6 @@ import { Editor } from '@monaco-editor/react';
 
 
 const MultiEditor = () => {
-
     const [content, setContent] = useState('');
     const [isEnabled, setIsEnabled] = useState(true);
     const [remainingTime, setRemainingTime] = useState(10);
@@ -33,7 +32,7 @@ const MultiEditor = () => {
     }
 
     return (
-        <div className='bg-gray-100'>
+        <div className='bg-gray-600'>
             <div className='mx-auto mx-w-6xl p-4 flex flex-col gap-5 justify-center'>
 
                 <h3>Time Remaining:</h3>
