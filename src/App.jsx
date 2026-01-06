@@ -2,7 +2,7 @@ import React from 'react'
 import { Route, Routes } from 'react-router'
 import Home from './pages/Home'
 import Login from './components/auth/login'
-import Signup from './components/auth/signup'
+import Register from './components/auth/register'
 
 const App = () => {
   return (
@@ -10,7 +10,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />}>
         </Route>
-        <Route path="/signup" element={<Signup />}>
+        <Route path="/register" element={<Register />}>
         </Route>
         <Route path="/Home" element={<Home />}>
         </Route>
