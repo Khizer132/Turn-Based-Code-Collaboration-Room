@@ -12,14 +12,13 @@ const MultiEditor = () => {
     useEffect(() => {
         // time interval counter 
         const interval = setInterval(() => {
-            console.log(`time: ${remainingTime}`)
+
             setRemainingTime(timeLeft => timeLeft - 1);
         }, 1000);
 
         if (remainingTime === 0) {
             clearInterval(interval)
             setIsEnabled(prevEnable => !prevEnable)
-            console.log(`enable: ${isEnabled}`)
             setRemainingTime(30)
         }
         return () => clearInterval(interval);

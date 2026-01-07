@@ -5,25 +5,41 @@ import { use } from 'react';
 import { useEffect } from 'react';
 import { useLoginUserMutation } from '../../redux/api/authApi.js';
 import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
+import { useLazyGetMeQuery } from '../../redux/api/userApi.js';
+
+
 
 const Login = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [getMe] = useLazyGetMeQuery();
+
+    const navigate = useNavigate();
 
 
-    const [login, {isLoading, data, error}] = useLoginUserMutation();
-   
+    const [login, { isLoading, error }] = useLoginUserMutation();
+    const { isAuthenticated } = useSelector((state) => state.auth);
+
+    console.log("Auth state in Login component:", isAuthenticated);
+
 
     useEffect(() => {
-        if(error) {
+        // redirect to home if logged in
+        if (isAuthenticated) {
+            navigate("/Home");
+        }
+
+        if (error) {
             toast.error(error?.data?.message || "Something went wrong!");
         }
-    }, [error]);
+    }, [isAuthenticated, error]);
 
-    
 
-    const submitHandler = (e) => {
+
+    const submitHandler = async (e) => {
         e.preventDefault();
         console.log("Login form submitted");
 
@@ -32,7 +48,17 @@ const Login = () => {
             password,
         };
 
-        login(loginData);
+        try {
+
+            const {data} = await login(loginData).unwrap()
+            console.log("Login successful, response data:", data);
+            toast.success("Login Successful");
+            await getMe().unwrap();
+
+        } catch (err) {
+            toast.error("Login failed:", err);
+        }
+
     }
 
     return (
@@ -67,8 +93,8 @@ const Login = () => {
                     />
                 </div>
 
-                <button className= 'rounded-[8px] bg-blue-600 text-center py-2 text-gray-200 mt-2 font-bold' disabled={isLoading}>
-                    {isLoading? "Authenticationg...":"Login"} </button>
+                <button className='rounded-[8px] bg-blue-600 text-center py-2 text-gray-200 mt-2 font-bold' disabled={isLoading}>
+                    {isLoading ? "Authenticationg..." : "Login"} </button>
 
                 <div className='flex gap-1 justify-center'>
                     <p className='font-normal'>Dont have an account?</p>
