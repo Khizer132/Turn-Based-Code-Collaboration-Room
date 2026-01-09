@@ -1,0 +1,28 @@
+import { createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react';
+
+export const sessionApi = createApi({
+    reducerPath: 'sessionApi',
+    baseQuery: fetchBaseQuery({ baseUrl: "/api/v1" }),
+    endpoints: (builder) => ({
+        createSession: builder.mutation({
+            query: () => ({
+                url: "/session/create",
+                method: "POST",
+            }),
+        }),
+
+        joinSession: builder.mutation({
+            query: ({ sessionId }) => ({
+                url: "/session/join",
+                method: "POST",
+                body: { sessionId },
+            }),
+        }),
+
+        getMultiSession: builder.query({
+            query: ({ sessionId }) => `/session/${sessionId}`,
+        }),
+    }),
+});
+
+export const { useJoinSessionMutation, useCreateSessionMutation, useGetMultiSessionQuery } = sessionApi;

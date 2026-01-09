@@ -3,7 +3,7 @@ import { useLazyLogoutUserQuery,  } from '../redux/api/authApi.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
-import { resetStates, setIsAuthenticated } from '../redux/features/userSlice.js';
+import { resetStates } from '../redux/features/userSlice.js';
 import { useEffect } from 'react';
 
 const Navbar = () => {
