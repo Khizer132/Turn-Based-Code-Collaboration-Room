@@ -5,6 +5,7 @@ import { use } from 'react';
 import { useEffect } from 'react';
 import { useRegisterUserMutation } from '../../redux/api/authApi.js';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router';
 
 const Register = () => {
 
@@ -16,20 +17,23 @@ const Register = () => {
 
     const { name, email, password } = user;
 
+    const navigate = useNavigate();
+
     const [register, { isLoading, data, error, isSuccess }] = useRegisterUserMutation();
 
     console.log("ragister data", data);
 
     useEffect(() => {
+
         if (error) {
             toast.error(error?.data?.message || "Something went wrong!");
         }
-        if(isSuccess) {
+        if (isSuccess) {
             toast.success("Registered Successfully! Please login.");
         }
     }, [error, isSuccess]);
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault();
 
         const registerData = {
@@ -38,7 +42,15 @@ const Register = () => {
             password,
         };
 
-        register(registerData);
+        try {
+            const { data } = await register(registerData).unwrap()
+            console.log("Register successful, response data:", data);
+            toast.success("Registered Successfully!");
+            navigate("/Home");
+
+        } catch (err) {
+            toast.error("Register failed:", err);
+        }
     }
 
     const onChangeHandler = (e) => {
@@ -90,7 +102,7 @@ const Register = () => {
                     />
                 </div>
 
-                <button className='rounded-[8px] bg-blue-600 text-center py-2 text-gray-200 mt-2 font-bold ' disabled={isLoading}>{isLoading? "Registering...":"Register"} </button>
+                <button className='rounded-[8px] bg-blue-600 text-center py-2 text-gray-200 mt-2 font-bold ' disabled={isLoading}>{isLoading ? "Registering..." : "Register"} </button>
 
                 <div className='flex gap-1 justify-center'>
                     <p className='font-normal'>Already have an account?</p>

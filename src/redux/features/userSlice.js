@@ -15,10 +15,10 @@ const userSlice = createSlice({
         setIsAuthenticated: (state, action) => {
             state.isAuthenticated = action.payload;
         },
-        resetStates : (state) => {
-            state.user = null;
-            state.isAuthenticated = false;
-        },
+        // resetStates : (state) => {
+        //     state.user = null;
+        //     state.isAuthenticated = false;
+        // },
     },
 });
 
