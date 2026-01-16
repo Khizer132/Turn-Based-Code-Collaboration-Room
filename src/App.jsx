@@ -1,14 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router'
 import Home from './pages/Home'
 import Login from './components/auth/login'
 import Register from './components/auth/register'
 import SessionRoom from './pages/sessionRoom'
-
+import { useLazyGetMeQuery } from './redux/api/userApi'
 
 const App = () => {
+  const [getMe] = useLazyGetMeQuery();
+
+  useEffect(() => {
+    getMe();
+  }, []);
+
   return (
-    <div>
+    <div className=''>
       <Routes>
         <Route path="/" element={<Login />}>
         </Route>

@@ -3,7 +3,10 @@ import { setIsAuthenticated, setUser } from '../features/userSlice';
 
 export const userApi = createApi({
     reducerPath: 'userApi',
-    baseQuery: fetchBaseQuery({ baseUrl: "/api/v1"}),
+    baseQuery: fetchBaseQuery({ 
+        baseUrl: "/api/v1",
+        credentials: 'include', // Include cookies with requests
+    }),
     endpoints: (builder) => ({
         getMe: builder.query({
             query: () => "/me",

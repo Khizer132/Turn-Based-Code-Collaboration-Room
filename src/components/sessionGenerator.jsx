@@ -12,7 +12,7 @@ const SessionGenerator = () => {
     const [createSession] = useCreateSessionMutation();
     const [joinSession] = useJoinSessionMutation();
 
-    const [mode, setMode] = useState(''); // 'create' or 'join'
+    const [mode, setMode] = useState(''); 
 
     const [sessionId, setSessionId] = useState('');
 
