@@ -4,7 +4,7 @@ import { setIsAuthenticated, setUser } from '../features/userSlice';
 export const userApi = createApi({
     reducerPath: 'userApi',
     baseQuery: fetchBaseQuery({ 
-        baseUrl: "/api/v1",
+        baseUrl: `${import.meta.env.VITE_BASE_URL}/api/v1`,
         credentials: 'include', // Include cookies with requests
     }),
     endpoints: (builder) => ({

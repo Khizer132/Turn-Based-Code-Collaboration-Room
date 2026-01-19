@@ -4,7 +4,7 @@ let socket = null;
 
 export const initializeSocket = () => {
     if (!socket) {
-        socket = io("http://localhost:5001", {
+        socket = io(import.meta.env.VITE_BASE_URL ?? "http://localhost:5001", {
             credentials: true,
             transports: ['websocket', 'polling']
         });
