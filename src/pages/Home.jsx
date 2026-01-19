@@ -5,7 +5,7 @@ import SessionGenerator from '../components/sessionGenerator'
 
 const Home = () => {
   return (
-    <div className='min-h-screen flex flex-col gap-5'>
+    <div className='min-h-screen flex flex-col bg-black'>
        <Navbar />
        <SessionGenerator />
     </div>
