@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
 import { FaCopy } from 'react-icons/fa';
-
 import { disconnectSocket } from '../lib/socket.js';
 import { initializeSocket } from '../lib/socket.js';
 
@@ -33,6 +32,7 @@ const SessionRoom = () => {
 
     const timerIntervalRef = useRef(null);
     const isDeveloper1Ref = useRef(false);
+    const debounceTimerRef = useRef(null);
 
     useEffect(() => {
         if (!user && !isAuthentiacted) {
@@ -161,9 +161,17 @@ const SessionRoom = () => {
 
     const onhandleChange = (value) => {
         setContent(value || '')
-        if (socket) {
-            socket.emit("code-updated", { code: value, sessionId });
+
+        if(debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
         }
+
+        debounceTimerRef.current = setTimeout(() => {
+            if (socket) {
+                socket.emit("code-updated", { code: value, sessionId });
+            }
+        }, 500);
+
     }
 
     const onCopyToClipboard = () => {

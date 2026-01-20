@@ -63,14 +63,14 @@ const SessionGenerator = () => {
                             {mode === "join" && (
                                 <>
                                     <div className='flex flex-col gap-4'>
-                                        <p className='mx-auto  font-medium text-gray-700 '>Enter the Sesssion Id </p>
+                                        <p className='mx-auto  font-medium text-gray-100 '>Enter the Sesssion Id </p>
                                         <div className='flex gap-4'>
                                             <input
                                                 type="text"
-                                                className=' p-2 border border-black rounded-md text-center'
+                                                className=' bg-gray-500/30 backdrop-blur-lg shadow-xl border border-white/20 p-2 text-gray-100 border-black rounded-md text-center'
                                                 onChange={(e) => setSessionId(e.target.value)}
                                             />
-                                            <button className='bg-gray-950 text-white px-8 py-2 rounded-md font-semibold ' onClick={handleJoinSession}>Join</button>
+                                            <button className='bg-gray-400/30 backdrop-blur-lg shadow-xl border border-white/20 text-white px-8 py-2 rounded-md font-semibold ' onClick={handleJoinSession}>Join</button>
                                         </div>
                                     </div>
 
