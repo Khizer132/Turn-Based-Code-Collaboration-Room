@@ -1,61 +1,50 @@
-// SessionRoom.jsx - COMPLETE UPDATED VERSION
-
-import React, { useEffect } from 'react'
-import { useState } from 'react'
-import { Editor } from '@monaco-editor/react';
-import { useParams } from 'react-router';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
-import toast from 'react-hot-toast';
-import { useRef } from 'react';
-import { FaCopy } from 'react-icons/fa';
-import { disconnectSocket } from '../lib/socket.js';
-import { initializeSocket } from '../lib/socket.js';
+import React, { useEffect, useRef, useState } from "react";
+import { Editor } from "@monaco-editor/react";
+import { useParams, useNavigate } from "react-router";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
+import { FaCopy } from "react-icons/fa";
+import { initializeSocket, disconnectSocket } from "../lib/socket.js";
 
 const SessionRoom = () => {
-
     const { sessionId } = useParams();
     const navigate = useNavigate();
-
-    const [socket, setSocket] = useState(null);
-
     const { user, isAuthentiacted } = useSelector((state) => state.auth);
 
-    const [content, setContent] = useState('');
+    const socketRef = useRef(null);
+    const editorRef = useRef(null);
+    const isDeveloper1Ref = useRef(false);
+    const lastEmitRef = useRef(0);
+
+    const [isMyTurn, setIsMyTurn] = useState(false);
     const [isEnabled, setIsEnabled] = useState(false);
     const [remainingTime, setRemainingTime] = useState(30);
     const [currentTurn, setCurrentTurn] = useState(null);
     const [developer1, setDeveloper1] = useState(null);
     const [developer2, setDeveloper2] = useState(null);
-    const [isMyTurn, setIsMyTurn] = useState(false);
     const [timerStarted, setTimerStarted] = useState(false);
-
-    const timerIntervalRef = useRef(null);
-    const isDeveloper1Ref = useRef(false);
-    const debounceTimerRef = useRef(null);
 
     useEffect(() => {
         if (!user && !isAuthentiacted) {
             navigate("/");
-            return
+            return;
         }
 
-        const socketInstance = initializeSocket();
-        setSocket(socketInstance);
+        const socket = initializeSocket();
+        socketRef.current = socket;
+        socket.removeAllListeners();
 
-        socketInstance.removeAllListeners();
-
-        socketInstance.on("connect", () => {
+        socket.on("connect", () => {
             console.log("Socket connected for session:", sessionId);
-            // Join session after connection
-            socketInstance.emit("join-session", { sessionId });
+            // Join session after connection            
+            socket.emit("join-session", { sessionId });
         });
 
-        socketInstance.on("session-joined", ({ message }) => {
+        socket.on("session-joined", ({ message }) => {
             toast.success(message || "Joined session successfully");
         });
 
-        socketInstance.on("session-activated", ({ message, developer1, developer2, shouldRejoin }) => {
+        socket.on("session-activated", ({message, developer1, developer2, shouldRejoin }) => {
             console.log("Session activated event received:", message);
 
             toast.success(message || "Session is now active!");
@@ -66,46 +55,34 @@ const SessionRoom = () => {
 
             // Rejoin the session now that it's active
             if (shouldRejoin) {
-                console.log("Rejoining active session...");
                 setTimeout(() => {
-                    socketInstance.emit("join-session", { sessionId });
+                    socket.emit("join-session", { sessionId });
                 }, 100);
             }
         });
 
-        socketInstance.on("session-participants", ({ developer1, developer2 }) => {
+        socket.on("session-participants", ({ developer1, developer2 }) => {
             setDeveloper1(developer1);
             setDeveloper2(developer2);
 
             // Determine if current user is developer1 or developer2
-            if (developer1 && developer1._id === user._id) {
+
+            if (developer1?._id === user._id) {
                 isDeveloper1Ref.current = true;
-                console.log("Current user is Developer1");
-            } else if (developer2 && developer2._id === user._id) {
+                console.log("cureent User is developer1");
+            } else {
                 isDeveloper1Ref.current = false;
-                console.log("Current user is Developer2");
+                console.log("currentUser is developer2");
             }
         });
 
-        socketInstance.on("user-joined", ({ userId, userName }) => {
-            toast.success(`${userName || userId} joined the session`);
-        });
-
-        socketInstance.on("user-left", ({ userId, userName }) => {
-            toast.error(`${userName || userId} left the session`);
-        });
-
-        socketInstance.on("code-exchanged", ({ code }) => {
-            setContent(code || '');
-        });
-
-        socketInstance.on("time-started", ({ currentTurn, dev1enabled, dev2enabled, remainingTime }) => {
+        socket.on("time-started", ({ currentTurn, remainingTime }) => {
             console.log("Timer started:", { currentTurn, remainingTime });
             setCurrentTurn(currentTurn);
             setRemainingTime(remainingTime);
             setTimerStarted(true);
 
-            const myTurn = isDeveloper1Ref.current ? (currentTurn === 'developer1' && dev1enabled) : (currentTurn === 'developer2' && dev2enabled);
+            const myTurn = (isDeveloper1Ref.current && currentTurn === "developer1") || (!isDeveloper1Ref.current && currentTurn === "developer2");
 
             setIsMyTurn(myTurn);
             setIsEnabled(myTurn);
@@ -113,23 +90,26 @@ const SessionRoom = () => {
             console.log("Is my turn:", myTurn);
         });
 
-        // Handle countdown updates from server
-        socketInstance.on("countdown-update", ({ currentTurn, dev1enabled, dev2enabled, remainingTime }) => {
+        socket.on("countdown-update", ({ currentTurn, remainingTime }) => {
             setCurrentTurn(currentTurn);
             setRemainingTime(remainingTime);
 
-            const myTurn = isDeveloper1Ref.current ? (currentTurn === 'developer1' && dev1enabled) : (currentTurn === 'developer2' && dev2enabled);
+            const myTurn =
+                (isDeveloper1Ref.current && currentTurn === "developer1") ||
+                (!isDeveloper1Ref.current && currentTurn === "developer2");
 
             setIsMyTurn(myTurn);
             setIsEnabled(myTurn);
         });
 
-        socketInstance.on("turn-switched", ({ currentTurn, dev1enabled, dev2enabled, remainingTime }) => {
+        socket.on("turn-switched", ({ currentTurn, remainingTime }) => {
             console.log("Turn switched to:", currentTurn);
             setCurrentTurn(currentTurn);
             setRemainingTime(remainingTime);
 
-            const myTurn = isDeveloper1Ref.current ? (currentTurn === 'developer1' && dev1enabled) : (currentTurn === 'developer2' && dev2enabled);
+            const myTurn =
+                (isDeveloper1Ref.current && currentTurn === "developer1") ||
+                (!isDeveloper1Ref.current && currentTurn === "developer2");
 
             setIsMyTurn(myTurn);
             setIsEnabled(myTurn);
@@ -138,43 +118,63 @@ const SessionRoom = () => {
             toast.info(`${currentDeveloperName}'s turn to code`);
         });
 
-        socketInstance.on("session-closed", (message) => {
+
+        socket.on("user-joined", ({ userId, userName }) => {
+            toast.success(`${userName || userId} joined the session`);
+        });
+
+        socket.on("user-left", ({ userId, userName }) => {
+            toast.error(`${userName || userId} left the session`);
+        });
+
+        
+        socket.on("code-exchanged", ({ code, senderId }) => {
+            if (senderId === user._id) return;
+
+            const editor = editorRef.current;
+            if (!editor) return;
+
+            const model = editor.getModel();
+            if (!model) return;
+
+            model.pushEditOperations(
+                [],
+                [{ range: model.getFullModelRange(), text: code }],
+                () => null
+            );
+        });
+
+        socket.on("session-closed", (message) => {
             toast.error(message);
             navigate("/");
         });
 
-        socketInstance.on("error", (message) => {
+        socket.on("error", (message) => {
             console.error("Socket error:", message);
             toast.error(message || "An error occurred");
         });
 
         return () => {
-            if (timerIntervalRef.current) {
-                clearInterval(timerIntervalRef.current);
-            }
-
-            socketInstance.removeAllListeners();
             disconnectSocket();
-
         };
     }, [sessionId]);
 
-    const onhandleChange = (value) => {
-        setContent(value || '')
+    
+    const handleChange = (value) => {
+        if (!isMyTurn || !socketRef.current) return;
 
-        if(debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
+        const now = Date.now();
+        if (now - lastEmitRef.current < 50) return; 
 
-        debounceTimerRef.current = setTimeout(() => {
-            if (socket) {
-                socket.emit("code-updated", { code: value, sessionId });
-            }
-        }, 500);
+        socketRef.current.emit("code-updated", {
+            code: value,
+            sessionId,
+        });
 
-    }
+        lastEmitRef.current = now;
+    };
 
-    const onCopyToClipboard = () => {
+     const onCopyToClipboard = () => {
         try {
             navigator.clipboard.writeText(sessionId);
             toast.success('Session ID copied to clipboard!');
@@ -198,6 +198,8 @@ const SessionRoom = () => {
         }
         return `${getCurrentDeveloperName()}'s Turn - Time Remaining: ${remainingTime}s`;
     }
+
+
 
     return (
         <div className='bg-black min-h-screen'>
@@ -244,16 +246,15 @@ const SessionRoom = () => {
                             </label>
                         </div>
                         <Editor
-                            id="editor"
-                            className='h-[80vh]'
-                            theme='vs-dark'
+                            height="75vh"
+                            theme="vs-dark"
                             defaultLanguage="javascript"
                             defaultValue="// Start coding when it's your turn..."
-                            value={content}
-                            onChange={onhandleChange}
+                            onMount={(editor) => (editorRef.current = editor)}
+                            onChange={handleChange}
                             options={{
                                 readOnly: !isMyTurn,
-                                minimap: { enabled: false }
+                                minimap: { enabled: false },
                             }}
                         />
                     </div>
@@ -261,6 +262,8 @@ const SessionRoom = () => {
             </div>
         </div>
     )
-}
+};
 
-export default SessionRoom
+export default SessionRoom;
+
+
